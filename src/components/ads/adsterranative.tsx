@@ -1,17 +1,25 @@
 import { useEffect } from "react";
 
-export const adsterranative = () => {
+export const AdsterraNative = () => {
   useEffect(() => {
+    const container = document.getElementById(
+      "container-c35c6f6f42ee902bbfca715ccd1d497f"
+    );
+
+    if (!container || container.hasChildNodes()) return;
+
     const script = document.createElement("script");
     script.async = true;
     script.setAttribute("data-cfasync", "false");
     script.src =
       "https://pl28562322.effectivegatecpm.com/c35c6f6f42ee902bbfca715ccd1d497f/invoke.js";
 
-    document.body.appendChild(script);
+    container.appendChild(script);
 
     return () => {
-      document.body.removeChild(script);
+      if (container.contains(script)) {
+        container.removeChild(script);
+      }
     };
   }, []);
 
@@ -22,4 +30,3 @@ export const adsterranative = () => {
     />
   );
 };
-
