@@ -1,4 +1,4 @@
- import { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
  import { Button } from "@/components/ui/button";
  import { MessageCircle } from "lucide-react";
  
@@ -32,13 +32,20 @@
    hash: string;
  }
  
- export function TelegramLogin({ botName, onAuth }: TelegramLoginProps) {
-   const containerRef = useRef<HTMLDivElement>(null);
-   const scriptLoaded = useRef(false);
- 
-   useEffect(() => {
-     if (scriptLoaded.current || !containerRef.current) return;
-     scriptLoaded.current = true;
+export function TelegramLogin({ botName, onAuth }: TelegramLoginProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const scriptLoaded = useRef(false);
+  const normalizedBotName = botName.trim().replace(/^@/, "");
+
+  useEffect(() => {
+    if (scriptLoaded.current || !containerRef.current) return;
+
+    if (!/^[a-zA-Z0-9_]{5,32}$/.test(normalizedBotName)) {
+      console.error(`Invalid Telegram bot username configured: "${botName}"`);
+      return;
+    }
+
+    scriptLoaded.current = true;
  
      // Set up the callback
      window.TelegramLoginWidget = {
@@ -73,7 +80,7 @@
      // Create the Telegram script
      const script = document.createElement("script");
      script.src = "https://telegram.org/js/telegram-widget.js?22";
-     script.setAttribute("data-telegram-login", botName);
+     script.setAttribute("data-telegram-login", normalizedBotName);
      script.setAttribute("data-size", "large");
      script.setAttribute("data-onauth", "TelegramLoginWidget.dataOnauth(user)");
      script.setAttribute("data-request-access", "write");
@@ -87,7 +94,7 @@
        }
        scriptLoaded.current = false;
      };
-   }, [botName, onAuth]);
+  }, [botName, normalizedBotName, onAuth]);
  
    return (
      <div className="flex flex-col items-center gap-4">
