@@ -96,6 +96,12 @@ const Index = () => {
                 <MiniBannerAd />
               </div>
 
+              {/* Native Ad Container */}
+              <div
+                id="container-c35c6f6f42ee902bbfca715ccd1d497f"
+                className="mb-6 flex justify-center"
+              />
+
               {/* Latest Updates Section */}
               <section>
                 <div className="flex items-center justify-between mb-5">
