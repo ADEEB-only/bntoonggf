@@ -4,7 +4,8 @@
  import { Button } from "@/components/ui/button";
  import { Textarea } from "@/components/ui/textarea";
  import { Loader2, Send, LogOut, MessageCircle } from "lucide-react";
- import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
+import { TELEGRAM_BOT_USERNAME } from "@/lib/telegram";
  
  interface CommentSectionProps {
    seriesId: string;
@@ -15,8 +16,8 @@
  export function CommentSection({
    seriesId,
    chapterId,
-   botName = "BNToonCommentsBot",
- }: CommentSectionProps) {
+  botName = TELEGRAM_BOT_USERNAME,
+}: CommentSectionProps) {
    const [user, setUser] = useState<TelegramUser | null>(null);
    const [content, setContent] = useState("");
    const [isSubmitting, setIsSubmitting] = useState(false);

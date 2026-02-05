@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { TelegramLogin, TelegramUser } from "@/components/comments/TelegramLogin";
+import { TELEGRAM_BOT_USERNAME } from "@/lib/telegram";
 import logo from "@/assets/logo.png";
 
 export function Header() {
@@ -265,7 +266,7 @@ export function Header() {
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-center py-6">
-            <TelegramLogin botName="BNToonCommentsBot" onAuth={handleAuth} />
+            <TelegramLogin botName={TELEGRAM_BOT_USERNAME} onAuth={handleAuth} />
           </div>
         </DialogContent>
       </Dialog>
