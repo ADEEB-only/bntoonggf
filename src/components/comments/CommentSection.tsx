@@ -1,3 +1,6 @@
+import { useState, useEffect, useCallback } from "react";
+import { TelegramLogin, TelegramUser } from "./TelegramLogin";
+import { CommentList } from "./CommentList";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Send, LogOut, MessageCircle } from "lucide-react";
@@ -39,6 +42,7 @@ import { TELEGRAM_BOT_USERNAME } from "@/lib/telegram";
            }
          }
         } catch {
+
          // Fall back to localStorage below
         }
 
@@ -59,8 +63,7 @@ import { TELEGRAM_BOT_USERNAME } from "@/lib/telegram";
     const handleAuth = useCallback((authUser: TelegramUser) => {
       setUser(authUser);
     }, []);
-
-   
+  
    const handleLogout = async () => {
      try {
        await fetch("/api/auth/logout", {
