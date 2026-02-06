@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, MessageCircle, TriangleAlert } from "lucide-react";
 
 interface TelegramLoginProps {
-  botName: string | null;
+  botName: string;
   onAuth: (user: TelegramUser) => void;
 }
 
@@ -39,7 +39,7 @@ export function TelegramLogin({ botName, onAuth }: TelegramLoginProps) {
   const scriptRef = useRef<HTMLScriptElement | null>(null);
   const timeoutRef = useRef<number | null>(null);
   const widgetReadyRef = useRef(false);
-  const normalizedBotName = botName?.trim().replace(/^@/, "") ?? "";
+  const normalizedBotName = botName.trim().replace(/^@/, "");
 
   const [isLoading, setIsLoading] = useState(true);
   const [widgetReady, setWidgetReady] = useState(false);
@@ -56,16 +56,9 @@ export function TelegramLogin({ botName, onAuth }: TelegramLoginProps) {
     setError(null);
     container.innerHTML = "";
 
-    if (!normalizedBotName) {
-      setIsLoading(false);
-      setError("Telegram login is unavailable. Missing VITE_TELEGRAM_BOT_NAME.");
-      console.error("Missing VITE_TELEGRAM_BOT_NAME for Telegram login widget");
-      return;
-    }
-
     if (!/^[a-zA-Z0-9_]{5,32}$/.test(normalizedBotName)) {
       setIsLoading(false);
-      setError("Telegram login is unavailable. Bot username format is invalid.");
+      setError("Telegram login is unavailable. Bot username is invalid.");
       console.error(`Invalid Telegram bot username configured: "${botName}"`);
       return;
     }
@@ -74,7 +67,7 @@ export function TelegramLogin({ botName, onAuth }: TelegramLoginProps) {
       dataOnauth: async (user: TelegramAuthResult) => {
         try {
           const response = await fetch(
-            "/api/auth/telegram",
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/telegram-auth`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
