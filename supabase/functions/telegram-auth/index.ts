@@ -46,16 +46,16 @@ Deno.serve(async (req) => {
      const authData: TelegramAuthData = await req.json();
  
      // Validate required fields
-     if (!authData.id || !authData.auth_date || !authData.hash) {
+     if (!authData.id || !authData.first_name || !authData.auth_date || !authData.hash) {
        return new Response(
          JSON.stringify({ error: "Missing required fields" }),
          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
        );
      }
  
-     // Check auth_date is not too old (24 hours)
+     // Check auth_date freshness window
      const now = Math.floor(Date.now() / 1000);
-     if (now - authData.auth_date > 86400) {
+     if (now - authData.auth_date > 86400 || authData.auth_date - now > 60) {
        return new Response(
          JSON.stringify({ error: "Auth data expired" }),
          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -125,20 +125,19 @@ Deno.serve(async (req) => {
    botToken: string
  ): Promise<boolean> {
    try {
-     // Build check string
-     const checkData = Object.entries(data)
-       .filter(([key]) => key !== "hash")
-       .sort(([a], [b]) => a.localeCompare(b))
-       .map(([key, value]) => `${key}=${value}`)
-       .join("\n");
- 
+     if (!/^[a-f0-9]{64}$/i.test(data.hash)) {
+       return false;
+     }
+
+     const checkData = buildTelegramCheckData(data);
+
      // Create secret key from bot token
      const encoder = new TextEncoder();
      const secretKeyData = await crypto.subtle.digest(
        "SHA-256",
        encoder.encode(botToken)
      );
- 
+
      const secretKey = await crypto.subtle.importKey(
        "raw",
        secretKeyData,
@@ -146,25 +145,59 @@ Deno.serve(async (req) => {
        false,
        ["sign"]
      );
- 
+
      // Calculate HMAC
      const signature = await crypto.subtle.sign(
        "HMAC",
        secretKey,
        encoder.encode(checkData)
      );
- 
-     // Convert to hex
+
      const calculatedHash = Array.from(new Uint8Array(signature))
        .map((b) => b.toString(16).padStart(2, "0"))
        .join("");
- 
-     return calculatedHash === data.hash;
+
+     return timingSafeEqualHex(calculatedHash, data.hash.toLowerCase());
    } catch (error) {
      console.error("Hash verification error:", error);
      return false;
    }
  }
+
+function buildTelegramCheckData(data: TelegramAuthData): string {
+  const pairs: Array<[string, string | number]> = [
+    ["auth_date", data.auth_date],
+    ["first_name", data.first_name],
+    ["id", data.id],
+  ];
+
+  if (typeof data.last_name === "string" && data.last_name.length > 0) {
+    pairs.push(["last_name", data.last_name]);
+  }
+  if (typeof data.photo_url === "string" && data.photo_url.length > 0) {
+    pairs.push(["photo_url", data.photo_url]);
+  }
+  if (typeof data.username === "string" && data.username.length > 0) {
+    pairs.push(["username", data.username]);
+  }
+
+  return pairs
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, value]) => `${key}=${value}`)
+    .join("\n");
+}
+
+function timingSafeEqualHex(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+
+  let mismatch = 0;
+  for (let i = 0; i < a.length; i++) {
+    mismatch |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+
+  return mismatch === 0;
+}
+
  
 async function createJWT(
   payload: Record<string, unknown>,
