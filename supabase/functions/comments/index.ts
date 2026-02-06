@@ -1,12 +1,20 @@
  import { neon } from "https://esm.sh/@neondatabase/serverless@0.10.4";
  
- const corsHeaders = {
-   "Access-Control-Allow-Origin": "*",
-   "Access-Control-Allow-Headers":
-     "authorization, x-client-info, apikey, content-type, cookie",
-   "Access-Control-Allow-Credentials": "true",
-  "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
- };
+const defaultAllowedOrigin = Deno.env.get("SITE_URL") ?? "*";
+
+function getCorsHeaders(req: Request) {
+  const requestOrigin = req.headers.get("origin");
+  const allowOrigin = requestOrigin ?? defaultAllowedOrigin;
+
+  return {
+    "Access-Control-Allow-Origin": allowOrigin,
+    "Access-Control-Allow-Headers":
+      "authorization, x-client-info, apikey, content-type, cookie",
+    "Access-Control-Allow-Credentials": "true",
+    "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
+    Vary: "Origin",
+  };
+}
  
  // Simple in-memory rate limiter
  const rateLimitMap = new Map<number, { count: number; resetAt: number }>();
@@ -54,12 +62,14 @@
    return trimmed.replace(/^['\"]|['\"]$/g, "").trim();
  }
  
- Deno.serve(async (req) => {
-   if (req.method === "OPTIONS") {
-     return new Response("ok", { headers: corsHeaders });
-   }
- 
-   try {
+Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
+  try {
      const neonConnectionString = normalizeNeonConnectionString(
        Deno.env.get("NEON_DATABASE_URL")
      );

@@ -90,8 +90,8 @@
 export function SidebarAd() {
   return (
     <AdBanner
-      width={0}
-      height={0}
+      width={300}
+      height={250}
       className="m5afd89751f"
       domain="//data527.click"
       affQuery="/5fbf3d48481d384a64a7/5afd89751f/?placementName=SidebarAd"

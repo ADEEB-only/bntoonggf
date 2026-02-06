@@ -20,6 +20,7 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
+  const [loginWidgetKey, setLoginWidgetKey] = useState(0);
   const [user, setUser] = useState<TelegramUser | null>(null);
   const secretSequence = useRef<string[]>([]);
 
@@ -27,14 +28,35 @@ export function Header() {
 
   // Check for existing session on mount
   useEffect(() => {
-    const stored = localStorage.getItem("tg_user");
-    if (stored) {
+    const restoreSession = async () => {
       try {
-        setUser(JSON.parse(stored));
+        const response = await fetch("/api/auth/session", {
+          credentials: "include",
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data?.authenticated && data?.user) {
+            setUser(data.user);
+            localStorage.setItem("tg_user", JSON.stringify(data.user));
+            return;
+          }
+        }
       } catch {
-        localStorage.removeItem("tg_user");
+        // Fall back to localStorage below
       }
-    }
+
+      const stored = localStorage.getItem("tg_user");
+      if (stored) {
+        try {
+          setUser(JSON.parse(stored));
+        } catch {
+          localStorage.removeItem("tg_user");
+        }
+      }
+    };
+
+    void restoreSession();
   }, []);
 
   const handleAuth = useCallback((authUser: TelegramUser) => {
@@ -42,11 +64,26 @@ export function Header() {
     setLoginOpen(false);
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch {
+      // ignore logout network failures and clear client state regardless
+    }
+
     localStorage.removeItem("tg_user");
-    document.cookie = "tg_auth=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+    document.cookie = "tg_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
     setUser(null);
   };
+
+  useEffect(() => {
+    if (loginOpen) {
+      setLoginWidgetKey((key) => key + 1);
+    }
+  }, [loginOpen]);
 
   // Listen for keyboard shortcuts
   useEffect(() => {
@@ -266,7 +303,13 @@ export function Header() {
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-center py-6">
-            <TelegramLogin botName={TELEGRAM_BOT_USERNAME} onAuth={handleAuth} />
+            {loginOpen && (
+              <TelegramLogin
+                key={loginWidgetKey}
+                botName={TELEGRAM_BOT_USERNAME}
+                onAuth={handleAuth}
+              />
+            )}
           </div>
         </DialogContent>
       </Dialog>
