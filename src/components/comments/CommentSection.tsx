@@ -1,85 +1,95 @@
-import { useState, useEffect, useCallback } from "react";
-import { TelegramLogin, type TelegramUser } from "./TelegramLogin";
-import { CommentList } from "./CommentList";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Send, LogOut, MessageCircle } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { TELEGRAM_BOT_USERNAME } from "@/lib/telegram";
+import { useEffect } from "react";
+
+interface TelegramUser {
+  telegram_id: number;
+  telegram_username?: string;
+  telegram_name?: string;
+  photo_url?: string;
+}
 
 interface CommentSectionProps {
   seriesId: string;
-  chapterId?: string;
-  botName?: string;
+  chapterId: string;
+  tgUser: TelegramUser | null;
+  onLogin: (user: TelegramUser) => void;
 }
 
-export function CommentSection({
+export const CommentSection = ({
   seriesId,
   chapterId,
-  botName = TELEGRAM_BOT_USERNAME,
-}: CommentSectionProps) {
-  const [user, setUser] = useState<TelegramUser | null>(null);
-  const [content, setContent] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
-  const { toast } = useToast();
-
-  // Check for existing session
+  tgUser,
+  onLogin,
+}: CommentSectionProps) => {
+  // Restore Telegram user if page refreshed
   useEffect(() => {
-    const restoreSession = () => {
+    if (!tgUser) {
       const stored = localStorage.getItem("tg_user");
       if (stored) {
         try {
-          setUser(JSON.parse(stored));
+          onLogin(JSON.parse(stored));
         } catch {
           localStorage.removeItem("tg_user");
         }
       }
-    };
-
-    restoreSession();
-  }, []);
-
-  const handleAuth = useCallback((authUser: TelegramUser) => {
-    setUser(authUser);
-  }, []);
-
-  const handleLogout = async () => {
-    localStorage.removeItem("tg_user");
-    document.cookie = "tg_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-    setUser(null);
-  };
-
-  const handleSubmit = async () => {
-    if (!content.trim() || !user) return;
-
-    setIsSubmitting(true);
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/comments`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            seriesId,
-            chapterId: chapterId || null,
-            content: content.trim(),
-          }),
-        }
-      );
-
-      if (response.ok) {
-        setContent("");
-        setRefreshKey((k) => k + 1);
-        // ... remainder of original function (likely success toast)
-      }
-    } catch (error) {
-      // ... original error handling
-    } finally {
-      setIsSubmitting(false);
     }
-  };
+  }, [tgUser, onLogin]);
 
-  // ... remainder of component (return statement, etc.)
-}
+  return (
+    <div className="mt-10 border-t pt-6">
+      <h2 className="text-lg font-semibold mb-4">Comments</h2>
+
+      {!tgUser ? (
+        <div className="text-sm text-muted-foreground">
+          <p className="mb-2">Login with Telegram to comment</p>
+
+          {/* Telegram Login Widget */}
+          <script
+            async
+            src="https://telegram.org/js/telegram-widget.js?22"
+            data-telegram-login="BnToonAccBot"
+            data-size="large"
+            data-userpic="true"
+            data-request-access="write"
+            data-onauth="onTelegramAuth"
+          ></script>
+        </div>
+      ) : (
+        <div>
+          <div className="mb-4 flex items-center gap-3">
+            {tgUser.photo_url && (
+              <img
+                src={tgUser.photo_url}
+                alt="avatar"
+                className="w-8 h-8 rounded-full"
+              />
+            )}
+            <span className="text-sm">
+              Logged in as{" "}
+              <strong>{tgUser.telegram_name || tgUser.telegram_username}</strong>
+            </span>
+          </div>
+
+          {/* Placeholder for comments list */}
+          <div className="text-sm text-muted-foreground mb-4">
+            No comments yet.
+          </div>
+
+          {/* Comment input */}
+          <textarea
+            className="w-full border rounded-md p-2 text-sm"
+            placeholder="Write a comment..."
+          />
+
+          <button
+            className="mt-2 px-4 py-1 rounded-md bg-primary text-primary-foreground text-sm"
+            onClick={() => {
+              alert("Hook this to backend later");
+            }}
+          >
+            Post
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
