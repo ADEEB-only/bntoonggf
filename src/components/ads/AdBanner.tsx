@@ -1,8 +1,3 @@
- (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
-diff --git a/src/components/ads/AdBanner.tsx b/src/components/ads/AdBanner.tsx
-index 37a72e22e3932c540042aad90c9ed221d7e3be1c..f6d32fba600c2c7f0712d13cfbc49171c6ee4168 100644
---- a/src/components/ads/AdBanner.tsx
-+++ b/src/components/ads/AdBanner.tsx
 @@ -68,34 +68,34 @@
         height={60}
         className="jf93c9f9f58"
@@ -29,10 +24,8 @@ index 37a72e22e3932c540042aad90c9ed221d7e3be1c..f6d32fba600c2c7f0712d13cfbc49171
  export function SidebarAd() {
    return (
      <AdBanner
--      width={0}
--      height={0}
-+      width={300}
-+      height={250}
+      width={300}
+      height={250}
        className="m5afd89751f"
        domain="//data527.click"
        affQuery="/5fbf3d48481d384a64a7/5afd89751f/?placementName=SidebarAd"
@@ -40,6 +33,3 @@ index 37a72e22e3932c540042aad90c9ed221d7e3be1c..f6d32fba600c2c7f0712d13cfbc49171
      />
    );
  }
- 
-EOF
-)
