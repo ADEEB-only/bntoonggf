@@ -9,7 +9,7 @@ import { BackToTop } from "@/components/ui/back-to-top";
 import { BookOpen, X, Filter, Loader2 } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
- import { LargeBannerAd } from "@/components/ads/AdBanner";
+import { MiniBannerAd } from "@/components/ads/AdBanner";
 
 const Browse = () => {
   const {
@@ -89,7 +89,7 @@ const Browse = () => {
 
         {/* Top Banner Ad */}
         <div className="mb-8 flex justify-center">
-          <LargeBannerAd />
+          <MiniBannerAd />
         </div>
 
         {/* Genre Filters */}
@@ -165,9 +165,9 @@ const Browse = () => {
               ))}
             </div>
 
-            {/* Mid-page Native Ad */}
+            {/* Mid-page Banner Ad */}
             <div className="my-10 flex justify-center">
-              <LargeBannerAd />
+              <MiniBannerAd />
             </div>
 
             {/* Infinite Scroll Trigger */}

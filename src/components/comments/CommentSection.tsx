@@ -26,23 +26,54 @@ import { TELEGRAM_BOT_USERNAME } from "@/lib/telegram";
  
    // Check for existing session
    useEffect(() => {
-     const stored = localStorage.getItem("tg_user");
-     if (stored) {
+     const restoreSession = async () => {
        try {
-         setUser(JSON.parse(stored));
+         const response = await fetch("/api/auth/session", {
+           credentials: "include",
+         });
+
+         if (response.ok) {
+           const data = await response.json();
+           if (data?.authenticated && data?.user) {
+             setUser(data.user);
+             localStorage.setItem("tg_user", JSON.stringify(data.user));
+             return;
+           }
+         }
        } catch {
-         localStorage.removeItem("tg_user");
+         // Fall back to localStorage below
        }
-     }
+
+       const stored = localStorage.getItem("tg_user");
+       if (stored) {
+         try {
+           setUser(JSON.parse(stored));
+         } catch {
+           localStorage.removeItem("tg_user");
+         }
+       }
+     };
+
+     void restoreSession();
    }, []);
  
    const handleAuth = useCallback((authUser: TelegramUser) => {
      setUser(authUser);
    }, []);
  
-   const handleLogout = () => {
+   const handleLogout = async () => {
+     try {
+       await fetch("/api/auth/logout", {
+         method: "POST",
+         credentials: "include",
+       });
+     } catch {
+       // ignore logout network failures and clear client state regardless
+     }
+
      localStorage.removeItem("tg_user");
      document.cookie = "tg_auth=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+     document.cookie = "tg_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
      setUser(null);
    };
  
