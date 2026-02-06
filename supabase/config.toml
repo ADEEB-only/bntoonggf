@@ -12,8 +12,6 @@
  [functions.setup]
  verify_jwt = false
  
- [functions.telegram-auth]
- verify_jwt = false
  
  [functions.comments]
  verify_jwt = false
