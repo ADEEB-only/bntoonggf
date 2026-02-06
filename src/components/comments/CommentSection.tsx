@@ -26,24 +26,7 @@ export function CommentSection({
 
   // Check for existing session
   useEffect(() => {
-    const restoreSession = async () => {
-      try {
-        const response = await fetch("/api/auth/session", {
-          credentials: "include",
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          if (data?.authenticated && data?.user) {
-            setUser(data.user);
-            localStorage.setItem("tg_user", JSON.stringify(data.user));
-            return;
-          }
-        }
-      } catch {
-        // Fall back to localStorage below
-      }
-
+    const restoreSession = () => {
       const stored = localStorage.getItem("tg_user");
       if (stored) {
         try {
@@ -54,7 +37,7 @@ export function CommentSection({
       }
     };
 
-    void restoreSession();
+    restoreSession();
   }, []);
 
   const handleAuth = useCallback((authUser: TelegramUser) => {
@@ -62,15 +45,6 @@ export function CommentSection({
   }, []);
 
   const handleLogout = async () => {
-    try {
-      await fetch("/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
-    } catch {
-      // ignore logout network failures and clear client state regardless
-    }
-
     localStorage.removeItem("tg_user");
     document.cookie = "tg_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
     setUser(null);

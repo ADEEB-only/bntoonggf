@@ -40,6 +40,10 @@ export function TelegramLogin({ botName, onAuth }: TelegramLoginProps) {
   const timeoutRef = useRef<number | null>(null);
   const widgetReadyRef = useRef(false);
   const normalizedBotName = botName?.trim().replace(/^@/, "") ?? "";
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+  const authEndpoint = supabaseUrl
+    ? `${supabaseUrl}/functions/v1/telegram-auth/telegram`
+    : null;
 
   const [isLoading, setIsLoading] = useState(true);
   const [widgetReady, setWidgetReady] = useState(false);
@@ -63,6 +67,13 @@ export function TelegramLogin({ botName, onAuth }: TelegramLoginProps) {
       return;
     }
 
+    if (!authEndpoint) {
+      setIsLoading(false);
+      setError("Telegram login is unavailable. Missing VITE_SUPABASE_URL.");
+      console.error("Missing VITE_SUPABASE_URL for Telegram login widget");
+      return;
+    }
+
     if (!/^[a-zA-Z0-9_]{5,32}$/.test(normalizedBotName)) {
       setIsLoading(false);
       setError("Telegram login is unavailable. Bot username format is invalid.");
@@ -73,15 +84,12 @@ export function TelegramLogin({ botName, onAuth }: TelegramLoginProps) {
     window.TelegramLoginWidget = {
       dataOnauth: async (user: TelegramAuthResult) => {
         try {
-          const response = await fetch(
-            "/api/auth/telegram",
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              credentials: "include",
-              body: JSON.stringify(user),
-            }
-          );
+          const response = await fetch(authEndpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify(user),
+          });
 
           if (!response.ok) {
             setError("Telegram authentication failed. Please try again.");
@@ -150,7 +158,7 @@ export function TelegramLogin({ botName, onAuth }: TelegramLoginProps) {
       if (container) container.innerHTML = "";
       scriptRef.current = null;
     };
-  }, [botName, normalizedBotName, onAuth, retryKey]);
+  }, [authEndpoint, botName, normalizedBotName, onAuth, retryKey]);
 
   return (
     <div className="flex flex-col items-center gap-4">
