@@ -67,7 +67,7 @@ export function TelegramLogin({ botName, onAuth }: TelegramLoginProps) {
       dataOnauth: async (user: TelegramAuthResult) => {
         try {
           const response = await fetch(
-            "/api/auth/telegram",
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/telegram-auth`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
