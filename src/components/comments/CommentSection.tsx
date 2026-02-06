@@ -1,9 +1,8 @@
-@@ -4,67 +4,97 @@
-  import { Button } from "@/components/ui/button";
-  import { Textarea } from "@/components/ui/textarea";
-  import { Loader2, Send, LogOut, MessageCircle } from "lucide-react";
- import { useToast } from "@/hooks/use-toast";
- import { TELEGRAM_BOT_USERNAME } from "@/lib/telegram";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Loader2, Send, LogOut, MessageCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { TELEGRAM_BOT_USERNAME } from "@/lib/telegram";
   
   interface CommentSectionProps {
     seriesId: string;
