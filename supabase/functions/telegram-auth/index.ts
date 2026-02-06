@@ -1,9 +1,18 @@
- const corsHeaders = {
-   "Access-Control-Allow-Origin": "*",
-   "Access-Control-Allow-Headers":
-     "authorization, x-client-info, apikey, content-type",
-   "Access-Control-Allow-Credentials": "true",
- };
+const defaultAllowedOrigin = Deno.env.get("SITE_URL") ?? "*";
+
+function getCorsHeaders(req: Request) {
+  const requestOrigin = req.headers.get("origin");
+  const allowOrigin = requestOrigin ?? defaultAllowedOrigin;
+
+  return {
+    "Access-Control-Allow-Origin": allowOrigin,
+    "Access-Control-Allow-Headers":
+      "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Credentials": "true",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    Vary: "Origin",
+  };
+}
  
  interface TelegramAuthData {
    id: number;
@@ -15,13 +24,15 @@
    hash: string;
  }
  
- Deno.serve(async (req) => {
+Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+
    if (req.method === "OPTIONS") {
      return new Response("ok", { headers: corsHeaders });
    }
  
    try {
-     const botToken = Deno.env.get("TELEGRAM_BOT_TOKEN");
+    const botToken = Deno.env.get("TELEGRAM_BOT_TOKEN");
      const jwtSecret = Deno.env.get("ADMIN_JWT_SECRET");
  
      if (!botToken || !jwtSecret) {
@@ -155,10 +166,10 @@
    }
  }
  
- async function createJWT(
-   payload: Record<string, unknown>,
-   secret: string
- ): Promise<string> {
+async function createJWT(
+  payload: Record<string, unknown>,
+  secret: string
+): Promise<string> {
    const encoder = new TextEncoder();
  
    const header = { alg: "HS256", typ: "JWT" };
@@ -181,13 +192,19 @@
      encoder.encode(signatureInput)
    );
  
-   const signatureB64 = base64UrlEncode(
-     String.fromCharCode(...new Uint8Array(signature))
-   );
+  const signatureB64 = base64UrlEncodeBytes(new Uint8Array(signature));
  
    return `${headerB64}.${payloadB64}.${signatureB64}`;
  }
  
- function base64UrlEncode(str: string): string {
-   return btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
- }
+function base64UrlEncode(str: string): string {
+  return btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+}
+
+function base64UrlEncodeBytes(bytes: Uint8Array): string {
+  let binary = "";
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte);
+  }
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+}
