@@ -15,3 +15,9 @@ This project is built with:
 
 Set `VITE_TELEGRAM_BOT_NAME` on the client to your Telegram bot username (without `@`).
 It must match the bot configured by your backend Telegram bot token, otherwise login may show `Username Invalid`.
+
+### Telegram login backend
+
+Deploy the `supabase/functions/telegram-auth` edge function and set the
+`TELEGRAM_BOT_TOKEN` secret in your Supabase environment so the login payload
+can be verified server-side.
