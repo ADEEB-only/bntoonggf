@@ -35,8 +35,7 @@ interface TelegramAuthResult {
 const WIDGET_LOAD_TIMEOUT_MS = 10000;
 
 export function TelegramLogin({ botName, onAuth }: TelegramLoginProps) {
-   const containerRef = useRef<HTMLDivElement>(null);
-
+  const containerRef = useRef<HTMLDivElement>(null);
   const scriptRef = useRef<HTMLScriptElement | null>(null);
   const timeoutRef = useRef<number | null>(null);
   const widgetReadyRef = useRef(false);
@@ -46,9 +45,8 @@ export function TelegramLogin({ botName, onAuth }: TelegramLoginProps) {
   const [widgetReady, setWidgetReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [retryKey, setRetryKey] = useState(0);
- 
-   useEffect(() => {
 
+  useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
@@ -64,14 +62,14 @@ export function TelegramLogin({ botName, onAuth }: TelegramLoginProps) {
       console.error("Missing VITE_TELEGRAM_BOT_NAME for Telegram login widget");
       return;
     }
- 
-     if (!/^[a-zA-Z0-9_]{5,32}$/.test(normalizedBotName)) {
+
+    if (!/^[a-zA-Z0-9_]{5,32}$/.test(normalizedBotName)) {
       setIsLoading(false);
       setError("Telegram login is unavailable. Bot username format is invalid.");
-       console.error(`Invalid Telegram bot username configured: "${botName}"`);
-       return;
-     }
- 
+      console.error(`Invalid Telegram bot username configured: "${botName}"`);
+      return;
+    }
+
     window.TelegramLoginWidget = {
       dataOnauth: async (user: TelegramAuthResult) => {
         try {
@@ -81,7 +79,7 @@ export function TelegramLogin({ botName, onAuth }: TelegramLoginProps) {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               credentials: "include",
-             body: JSON.stringify(user),
+              body: JSON.stringify(user),
             }
           );
 
@@ -134,7 +132,7 @@ export function TelegramLogin({ botName, onAuth }: TelegramLoginProps) {
       setIsLoading(false);
       setWidgetReady(false);
       setError("Could not load Telegram widget. Check your connection and retry.");
-   };
+    };
 
     scriptRef.current = script;
     container.appendChild(script);
