@@ -20,6 +20,7 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
+  const [loginWidgetKey, setLoginWidgetKey] = useState(0);
   const [user, setUser] = useState<TelegramUser | null>(null);
   const secretSequence = useRef<string[]>([]);
 
@@ -78,6 +79,12 @@ export function Header() {
     document.cookie = "tg_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
     setUser(null);
   };
+
+  useEffect(() => {
+    if (loginOpen) {
+      setLoginWidgetKey((key) => key + 1);
+    }
+  }, [loginOpen]);
 
   // Listen for keyboard shortcuts
   useEffect(() => {
@@ -297,7 +304,13 @@ export function Header() {
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-center py-6">
-            <TelegramLogin botName={TELEGRAM_BOT_USERNAME} onAuth={handleAuth} />
+            {loginOpen && (
+              <TelegramLogin
+                key={loginWidgetKey}
+                botName={TELEGRAM_BOT_USERNAME}
+                onAuth={handleAuth}
+              />
+            )}
           </div>
         </DialogContent>
       </Dialog>
